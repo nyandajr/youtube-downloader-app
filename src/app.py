@@ -457,45 +457,33 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
 THEMES = {
     "🌑 Dark": {
         "bg": "#0F0F0F",
-        "card_bg": "#1E1E1E",
+        "card_bg": "#1A1A1A",
         "input_bg": "#272727",
         "text": "#FFFFFF",
         "subtext": "#AAAAAA",
-        "label": "#888888",
-        "border": "#333333",
-        "input_border": "#3F3F3F",
-        "footer_border": "#222222",
-        "footer_text": "#555555",
-        "selectbox_bg": "#272727",
-        "selectbox_color": "white",
+        "label": "#777777",
+        "border": "#2E2E2E",
+        "input_border": "#444444",
     },
     "☀️ Light": {
-        "bg": "#FFFFFF",
-        "card_bg": "#F5F5F5",
-        "input_bg": "#EFEFEF",
-        "text": "#111111",
+        "bg": "#F8F9FA",
+        "card_bg": "#FFFFFF",
+        "input_bg": "#F0F0F0",
+        "text": "#1A1A1A",
         "subtext": "#555555",
-        "label": "#666666",
-        "border": "#DDDDDD",
+        "label": "#888888",
+        "border": "#E0E0E0",
         "input_border": "#CCCCCC",
-        "footer_border": "#DDDDDD",
-        "footer_text": "#999999",
-        "selectbox_bg": "#EFEFEF",
-        "selectbox_color": "#111111",
     },
     "🌫️ Grey": {
-        "bg": "#2B2B2B",
-        "card_bg": "#3A3A3A",
-        "input_bg": "#444444",
-        "text": "#EEEEEE",
-        "subtext": "#BBBBBB",
-        "label": "#AAAAAA",
-        "border": "#555555",
-        "input_border": "#666666",
-        "footer_border": "#444444",
-        "footer_text": "#888888",
-        "selectbox_bg": "#444444",
-        "selectbox_color": "#EEEEEE",
+        "bg": "#1E2025",
+        "card_bg": "#2A2D35",
+        "input_bg": "#33373F",
+        "text": "#E8E8E8",
+        "subtext": "#AAAAAA",
+        "label": "#888888",
+        "border": "#3E424D",
+        "input_border": "#4A4E5A",
     },
 }
 
@@ -504,138 +492,221 @@ def apply_theme(t):
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
 
-        .stApp {{
+        /* ── Base app background ── */
+        .stApp, [data-testid="stAppViewContainer"] {{
             background-color: {t['bg']} !important;
             font-family: 'Inter', sans-serif !important;
         }}
 
-        /* Force all text to be visible */
-        .stApp, .stApp p, .stApp div, .stApp span, .stApp label,
-        .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5 {{
-            color: {t['text']} !important;
+        /* ── Sidebar ── */
+        [data-testid="stSidebar"], [data-testid="stSidebar"] > div {{
+            background-color: {t['card_bg']} !important;
+            border-right: 1px solid {t['border']} !important;
+        }}
+
+        /* ── All text ── */
+        .stApp *, [data-testid="stSidebar"] * {{
             font-family: 'Inter', sans-serif !important;
         }}
 
+        .stApp p, .stApp div, .stApp span, .stApp li,
+        [data-testid="stSidebar"] p,
+        [data-testid="stSidebar"] label,
+        [data-testid="stSidebar"] span {{
+            color: {t['text']} !important;
+        }}
+
+        /* ── Header ── */
         .main-header {{
             text-align: center;
             background: linear-gradient(90deg, #FF0000 0%, #FF4B4B 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: 800;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.3rem;
             letter-spacing: -1px;
         }}
 
         .subtitle {{
             text-align: center;
             color: {t['subtext']} !important;
-            font-size: 1.1rem;
-            margin-bottom: 3rem;
-            font-weight: 400;
+            font-size: 1rem;
+            margin-bottom: 2rem;
         }}
 
+        /* ── Input fields ── */
         .stTextInput > div > div > input {{
             background-color: {t['input_bg']} !important;
             color: {t['text']} !important;
-            border: 1px solid {t['input_border']} !important;
-            border-radius: 12px !important;
-            padding: 12px 15px !important;
+            border: 1.5px solid {t['input_border']} !important;
+            border-radius: 10px !important;
             font-size: 1rem !important;
+            padding: 10px 14px !important;
         }}
-
+        .stTextInput > div > div > input::placeholder {{
+            color: {t['label']} !important;
+        }}
         .stTextInput > div > div > input:focus {{
             border-color: #FF0000 !important;
-            box-shadow: 0 0 0 1px #FF0000 !important;
+            box-shadow: 0 0 0 2px rgba(255,0,0,0.2) !important;
         }}
-
-        .stTextInput label, .stSelectbox label, .stCheckbox label span {{
+        .stTextInput label {{
             color: {t['text']} !important;
             font-weight: 600 !important;
         }}
 
+        /* ── Buttons ── */
         .stButton > button {{
-            background: linear-gradient(90deg, #FF0000 0%, #D00000 100%) !important;
-            color: white !important;
-            font-weight: 600 !important;
-            border-radius: 12px !important;
+            background: linear-gradient(90deg, #FF0000, #CC0000) !important;
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+            border-radius: 10px !important;
             border: none !important;
-            padding: 0.8rem 2rem !important;
-            box-shadow: 0 4px 15px rgba(255,0,0,0.3) !important;
-            transition: all 0.3s ease !important;
+            padding: 0.7rem 1.5rem !important;
+            box-shadow: 0 4px 14px rgba(255,0,0,0.35) !important;
+            transition: all 0.2s ease !important;
+            width: 100% !important;
+        }}
+        .stButton > button:hover {{
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 18px rgba(255,0,0,0.45) !important;
+        }}
+
+        /* ── Download button ── */
+        .stDownloadButton > button {{
+            background: linear-gradient(90deg, #00A550, #007A3D) !important;
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+            border-radius: 10px !important;
+            border: none !important;
+            padding: 0.7rem 1.5rem !important;
+            box-shadow: 0 4px 14px rgba(0,165,80,0.35) !important;
             width: 100% !important;
         }}
 
-        .stButton > button:hover {{
-            transform: translateY(-2px) !important;
-            box-shadow: 0 6px 20px rgba(255,0,0,0.4) !important;
-        }}
-
-        .video-card {{
-            background: {t['card_bg']} !important;
-            border-radius: 16px !important;
-            padding: 2rem !important;
-            border: 1px solid {t['border']} !important;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
-            margin-top: 2rem !important;
-        }}
-
-        .info-label {{
-            color: {t['label']} !important;
-            font-size: 0.9rem !important;
-            text-transform: uppercase !important;
-            letter-spacing: 1px !important;
-            margin-bottom: 0.2rem !important;
-        }}
-
-        .info-value {{
-            color: {t['text']} !important;
-            font-size: 1.1rem !important;
-            font-weight: 600 !important;
-            margin-bottom: 1rem !important;
-        }}
-
-        .stSelectbox > div > div {{
-            background-color: {t['selectbox_bg']} !important;
-            color: {t['selectbox_color']} !important;
-            border: 1px solid {t['input_border']} !important;
-            border-radius: 12px !important;
-        }}
-
-        /* Tabs */
-        .stTabs [data-baseweb="tab-list"] {{
+        /* ── Tabs ── */
+        [data-testid="stTabs"] [data-baseweb="tab-list"] {{
             background-color: {t['card_bg']} !important;
-            border-radius: 12px !important;
+            border-radius: 10px !important;
+            padding: 4px !important;
+            gap: 4px !important;
         }}
-
-        .stTabs [data-baseweb="tab"] {{
+        [data-testid="stTabs"] [data-baseweb="tab"] {{
             color: {t['subtext']} !important;
             font-weight: 600 !important;
-        }}
-
-        .stTabs [aria-selected="true"] {{
-            color: #FF0000 !important;
-        }}
-
-        /* Expander */
-        .streamlit-expanderHeader {{
-            color: {t['text']} !important;
-            background-color: {t['card_bg']} !important;
             border-radius: 8px !important;
+            padding: 8px 16px !important;
+        }}
+        [data-testid="stTabs"] [aria-selected="true"] {{
+            background-color: {t['bg']} !important;
+            color: #FF0000 !important;
+            border-bottom: 2px solid #FF0000 !important;
         }}
 
-        .streamlit-expanderContent {{
+        /* ── Expander ── fix overlapping text ── */
+        [data-testid="stExpander"] {{
             background-color: {t['card_bg']} !important;
-            border-radius: 0 0 8px 8px !important;
+            border: 1px solid {t['border']} !important;
+            border-radius: 10px !important;
+        }}
+        [data-testid="stExpander"] summary {{
+            color: {t['text']} !important;
+            font-weight: 600 !important;
+            font-size: 0.95rem !important;
+            padding: 10px 14px !important;
+        }}
+        [data-testid="stExpander"] summary p,
+        [data-testid="stExpander"] summary span {{
+            color: {t['text']} !important;
         }}
 
+        /* ── Selectbox ── */
+        [data-testid="stSelectbox"] > div > div {{
+            background-color: {t['input_bg']} !important;
+            color: {t['text']} !important;
+            border: 1.5px solid {t['input_border']} !important;
+            border-radius: 10px !important;
+        }}
+        [data-testid="stSelectbox"] label {{
+            color: {t['text']} !important;
+            font-weight: 600 !important;
+        }}
+
+        /* ── Checkbox ── */
+        .stCheckbox label span {{
+            color: {t['text']} !important;
+            font-weight: 500 !important;
+        }}
+
+        /* ── Radio (sidebar theme) ── */
+        [data-testid="stSidebar"] .stRadio label span {{
+            color: {t['text']} !important;
+            font-weight: 500 !important;
+            font-size: 0.95rem !important;
+        }}
+        [data-testid="stSidebar"] .stRadio [data-testid="stMarkdownContainer"] p {{
+            color: {t['text']} !important;
+            font-weight: 700 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 8px !important;
+        }}
+
+        /* ── Video card ── */
+        .video-card {{
+            background: {t['card_bg']} !important;
+            border-radius: 14px !important;
+            padding: 1.5rem !important;
+            border: 1px solid {t['border']} !important;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.2) !important;
+            margin-top: 1.5rem !important;
+        }}
+        .info-label {{
+            color: {t['label']} !important;
+            font-size: 0.8rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            margin-bottom: 2px !important;
+            font-weight: 600 !important;
+        }}
+        .info-value {{
+            color: {t['text']} !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            margin-bottom: 0.8rem !important;
+        }}
+
+        /* ── Alerts ── */
+        [data-testid="stAlert"] {{
+            border-radius: 10px !important;
+            border: none !important;
+        }}
+
+        /* ── Progress bar ── */
+        [data-testid="stProgressBar"] > div {{
+            background: linear-gradient(90deg, #FF0000, #FF4B4B) !important;
+            border-radius: 6px !important;
+        }}
+
+        /* ── Markdown headings ── */
+        .stApp h1, .stApp h2, .stApp h3 {{
+            color: {t['text']} !important;
+        }}
+
+        /* ── Footer ── */
         .footer {{
             text-align: center !important;
-            color: {t['footer_text']} !important;
-            margin-top: 4rem !important;
-            padding-top: 2rem !important;
-            border-top: 1px solid {t['footer_border']} !important;
-            font-size: 0.9rem !important;
+            color: {t['label']} !important;
+            margin-top: 3rem !important;
+            padding-top: 1.5rem !important;
+            border-top: 1px solid {t['border']} !important;
+            font-size: 0.85rem !important;
+        }}
+
+        /* ── Divider ── */
+        hr {{
+            border-color: {t['border']} !important;
         }}
     </style>
     """, unsafe_allow_html=True)
