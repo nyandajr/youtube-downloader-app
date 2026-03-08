@@ -17,6 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# 
 # Database setup
 DB_PATH = "download_history.db"
 db_lock = threading.Lock()
@@ -165,12 +166,14 @@ def get_video_info(url):
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
-        'extractaudio': False,
         'skip_download': True,
         'no_playlist': True,
         'fragment_retries': 10,
         'retries': 10,
-        'ignoreerrors': 'only_download'
+        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36',
+        },
     }
     
     try:
@@ -193,7 +196,10 @@ def get_video_formats(url):
         'no_warnings': True,
         'skip_download': True,
         'no_playlist': True,
-        'listformats': False
+        'extractor_args': {'youtube': {'player_client': ['android', 'web']}},
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36',
+        },
     }
     
     try:
@@ -362,25 +368,35 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
         elif progress_callback and d['status'] == 'finished':
             progress_callback(100, d.get('total_bytes', 0), d.get('total_bytes', 0), 0)
     
+    # Shared options to bypass YouTube 403 blocks on cloud servers
+    bypass_opts = {
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['android', 'web'],
+            }
+        },
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36',
+        },
+        'no_playlist': True,
+        'fragment_retries': 15,
+        'retries': 15,
+        'progress_hooks': [progress_hook] if progress_callback else [],
+    }
+
     # Audio extraction
     if audio_only:
         ydl_opts = {
+            **bypass_opts,
             'format': 'bestaudio/best',
             'outtmpl': os.path.join(output_path, '%(id)s.%(ext)s'),
-            'no_playlist': True,
-            'progress_hooks': [progress_hook] if progress_callback else [],
-            'fragment_retries': 10,
-            'retries': 10,
         }
     else:
         ydl_opts = {
+            **bypass_opts,
             'format': f'{format_id}/bestvideo+bestaudio/best',
             'outtmpl': os.path.join(output_path, '%(id)s.%(ext)s'),
-            'no_playlist': True,
             'merge_output_format': 'mp4',
-            'progress_hooks': [progress_hook] if progress_callback else [],
-            'fragment_retries': 10,
-            'retries': 10,
         }
     
     try:
