@@ -901,14 +901,19 @@ def main():
                             # Serve file as browser download
                             file_name = os.path.basename(file_path)
                             mime = "audio/mpeg" if file_path.endswith('.mp3') else "video/mp4"
+                            file_size = os.path.getsize(file_path)
+
                             with open(file_path, "rb") as f:
                                 st.download_button(
-                                    label=f"💾 Save: {file_name}",
+                                    label=f"💾 Save to device: {file_name}",
                                     data=f,
                                     file_name=file_name,
                                     mime=mime,
                                     use_container_width=True
                                 )
+
+                            # Show file size info
+                            st.caption(f"📦 File size: {format_file_size(file_size)} — tap the button above to save to your device")
                         else:
                             st.error("❌ Download failed - file not found")
                     except Exception as e:
