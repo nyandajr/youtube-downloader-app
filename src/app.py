@@ -366,90 +366,62 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
     if audio_only:
         ydl_opts = {
             'format': 'bestaudio/best',
-            'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+            'outtmpl': os.path.join(output_path, '%(id)s.%(ext)s'),
             'no_playlist': True,
             'progress_hooks': [progress_hook] if progress_callback else [],
             'fragment_retries': 10,
             'retries': 10,
-            'ignoreerrors': 'only_download',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }]
-        }
-    # Check if format needs audio merging
-    elif '+' not in format_id:
-        # Single format - might need best audio
-        ydl_opts = {
-            'format': f'{format_id}+bestaudio/best',  # Try to merge with best audio
-            'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
-            'no_playlist': True,
-            'merge_output_format': 'mp4',  # Ensure mp4 output
-            'writesubtitles': True,
-            'subtitleslangs': ['en'],
-            'embedsubtitles': True,
-            'progress_hooks': [progress_hook] if progress_callback else [],
-            'fragment_retries': 10,
-            'retries': 10,
-            'ignoreerrors': 'only_download',
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',
-            }, {
-                'key': 'FFmpegEmbedSubtitle',
-            }]
         }
     else:
-        # Already a combined format
         ydl_opts = {
-            'format': format_id,
-            'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+            'format': f'{format_id}/bestvideo+bestaudio/best',
+            'outtmpl': os.path.join(output_path, '%(id)s.%(ext)s'),
             'no_playlist': True,
             'merge_output_format': 'mp4',
-            'writesubtitles': True,
-            'subtitleslangs': ['en'],
-            'embedsubtitles': True,
             'progress_hooks': [progress_hook] if progress_callback else [],
             'fragment_retries': 10,
             'retries': 10,
-            'ignoreerrors': 'only_download',
-            'postprocessors': [{
-                'key': 'FFmpegEmbedSubtitle',
-            }]
         }
     
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            # Snapshot files before download
+            before = set(os.listdir(output_path))
+
             info = ydl.extract_info(url, download=True)
-            
-            # Get the downloaded file path
-            if info:
+
+            # Snapshot files after download
+            after = set(os.listdir(output_path))
+            new_files = [
+                os.path.join(output_path, f)
+                for f in (after - before)
+                if not f.endswith('.part') and not f.endswith('.ytdl')
+            ]
+
+            # Pick the largest new file (the actual video/audio)
+            if new_files:
+                filename = max(new_files, key=os.path.getsize)
+            elif info:
+                # Fallback: try prepare_filename
                 filename = ydl.prepare_filename(info)
-                if audio_only:
-                    # Change extension to mp3
-                    filename = os.path.splitext(filename)[0] + '.mp3'
-                else:
-                    # For merged formats, extension is mp4
-                    filename = os.path.splitext(filename)[0] + '.mp4'
-
-                # Resolve actual file on disk (yt-dlp may change name slightly)
                 base = os.path.splitext(filename)[0]
+                filename = None
                 for ext in ['.mp4', '.mp3', '.webm', '.mkv', '.m4a']:
-                    candidate = base + ext
-                    if os.path.exists(candidate):
-                        filename = candidate
+                    if os.path.exists(base + ext):
+                        filename = base + ext
                         break
+            else:
+                return None
 
+            if filename and os.path.exists(filename):
                 # Add to history
-                video_id = info.get('id', '')
-                title = info.get('title', 'Unknown')
-                filesize = info.get('filesize', 0) or info.get('filesize_approx', 0)
+                video_id = info.get('id', '') if info else ''
+                title = info.get('title', 'Unknown') if info else 'Unknown'
+                filesize = os.path.getsize(filename)
                 format_str = 'MP3 Audio' if audio_only else format_id
-                
                 add_to_history(video_id, title, url, format_str, filesize, filename)
                 return filename
-        
+
         return None
     except Exception as e:
         raise Exception(f"Download failed: {str(e)}")
