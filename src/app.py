@@ -7,6 +7,7 @@ import json
 import sqlite3
 from datetime import datetime
 import threading
+import tempfile
 
 # Configure Streamlit page
 st.set_page_config(
@@ -428,7 +429,18 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
                 if audio_only:
                     # Change extension to mp3
                     filename = os.path.splitext(filename)[0] + '.mp3'
-                
+                else:
+                    # For merged formats, extension is mp4
+                    filename = os.path.splitext(filename)[0] + '.mp4'
+
+                # Resolve actual file on disk (yt-dlp may change name slightly)
+                base = os.path.splitext(filename)[0]
+                for ext in ['.mp4', '.mp3', '.webm', '.mkv', '.m4a']:
+                    candidate = base + ext
+                    if os.path.exists(candidate):
+                        filename = candidate
+                        break
+
                 # Add to history
                 video_id = info.get('id', '')
                 title = info.get('title', 'Unknown')
@@ -436,8 +448,9 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
                 format_str = 'MP3 Audio' if audio_only else format_id
                 
                 add_to_history(video_id, title, url, format_str, filesize, filename)
+                return filename
         
-        return True
+        return None
     except Exception as e:
         raise Exception(f"Download failed: {str(e)}")
 
@@ -682,14 +695,7 @@ def main():
 
             # Settings
             with st.expander("⚙️ Settings"):
-                output_dir = st.text_input(
-                    "Download Folder",
-                    value="downloads",
-                    key="output_dir"
-                )
                 audio_only = st.checkbox("🎵 Extract Audio Only (MP3)", key="audio_only")
-                if output_dir:
-                    Path(output_dir).mkdir(exist_ok=True)
 
             # Process URL
             if check_btn:
@@ -795,33 +801,48 @@ def main():
                     selected_fmt_id = None
                 
                 # Download button
-                if st.button("Download Now", key="dl_btn"):
-                    if not output_dir:
-                        st.error("Please set a download folder in settings")
-                    else:
-                        progress_bar = st.progress(0)
-                        status_text = st.empty()
-                        
-                        def update_progress(percentage, downloaded, total, speed):
-                            progress_bar.progress(percentage)
-                            speed_mb = speed / (1024 * 1024) if speed else 0
-                            status_text.markdown(f"`{percentage}%` | `{format_file_size(downloaded)}` / `{format_file_size(total)}` | `{speed_mb:.1f} MB/s`")
-                        
-                        try:
-                            with st.spinner("Downloading..."):
-                                success = download_video(
-                                    st.session_state.current_url,
-                                    selected_fmt_id if selected_fmt_id else 'best',
-                                    output_dir,
-                                    update_progress,
-                                    audio_only=st.session_state.get('audio_only', False)
+                if st.button("⬇️ Download Now", key="dl_btn"):
+                    progress_bar = st.progress(0)
+                    status_text = st.empty()
+
+                    def update_progress(percentage, downloaded, total, speed):
+                        progress_bar.progress(percentage)
+                        speed_mb = speed / (1024 * 1024) if speed else 0
+                        status_text.markdown(f"`{percentage}%` | `{format_file_size(downloaded)}` / `{format_file_size(total)}` | `{speed_mb:.1f} MB/s`")
+
+                    try:
+                        with st.spinner("⏳ Downloading... please wait"):
+                            # Use temp directory so it works on cloud too
+                            tmp_dir = tempfile.mkdtemp()
+                            file_path = download_video(
+                                st.session_state.current_url,
+                                selected_fmt_id if selected_fmt_id else 'best',
+                                tmp_dir,
+                                update_progress,
+                                audio_only=st.session_state.get('audio_only', False)
+                            )
+
+                        if file_path and os.path.exists(file_path):
+                            progress_bar.progress(100)
+                            status_text.markdown("`100%` ✅ Done!")
+                            st.balloons()
+                            st.success(f"✅ Ready to download!")
+
+                            # Serve file as browser download
+                            file_name = os.path.basename(file_path)
+                            mime = "audio/mpeg" if file_path.endswith('.mp3') else "video/mp4"
+                            with open(file_path, "rb") as f:
+                                st.download_button(
+                                    label=f"💾 Save: {file_name}",
+                                    data=f,
+                                    file_name=file_name,
+                                    mime=mime,
+                                    use_container_width=True
                                 )
-                            
-                            if success:
-                                st.balloons()
-                                st.success(f"✅ Downloaded to {output_dir}")
-                        except Exception as e:
-                            st.error(f"Download failed: {str(e)}")
+                        else:
+                            st.error("❌ Download failed - file not found")
+                    except Exception as e:
+                        st.error(f"❌ Download failed: {str(e)}")
                 
                 st.markdown('</div>', unsafe_allow_html=True)
     
