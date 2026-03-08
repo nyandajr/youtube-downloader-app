@@ -616,10 +616,23 @@ def apply_theme(t):
             font-weight: 600 !important;
             font-size: 0.95rem !important;
             padding: 10px 14px !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
         }}
         [data-testid="stExpander"] summary p,
-        [data-testid="stExpander"] summary span {{
+        [data-testid="stExpander"] summary span,
+        [data-testid="stExpander"] details summary div p {{
             color: {t['text']} !important;
+            font-size: 0.95rem !important;
+            line-height: 1.4 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }}
+        /* Fix arrow icon overlap */
+        [data-testid="stExpander"] summary svg {{
+            flex-shrink: 0 !important;
+            margin-right: 6px !important;
         }}
 
         /* ── Selectbox ── */
@@ -765,7 +778,7 @@ def main():
                 check_btn = st.button("Get Info", key="get_info_btn", use_container_width=True)
 
             # Settings
-            with st.expander("⚙️ Settings"):
+            with st.expander("Settings"):
                 audio_only = st.checkbox("🎵 Extract Audio Only (MP3)", key="audio_only")
 
             # Process URL
