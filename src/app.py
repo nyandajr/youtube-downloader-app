@@ -13,128 +13,8 @@ st.set_page_config(
     page_title="YouTube Downloader",
     page_icon="🎬",
     layout="centered",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
-
-# Custom CSS for modern styling
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
-    /* Global Styles */
-    .stApp {
-        background-color: #0F0F0F;
-        color: #FFFFFF;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    h1, h2, h3, p {
-        font-family: 'Inter', sans-serif;
-    }
-
-    /* Header */
-    .main-header {
-        text-align: center;
-        background: linear-gradient(90deg, #FF0000 0%, #FF4B4B 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 3.5rem;
-        font-weight: 800;
-        margin-bottom: 0.5rem;
-        letter-spacing: -1px;
-    }
-    
-    .subtitle {
-        text-align: center;
-        color: #AAAAAA;
-        font-size: 1.1rem;
-        margin-bottom: 3rem;
-        font-weight: 400;
-    }
-
-    /* Inputs */
-    .stTextInput > div > div > input {
-        background-color: #272727;
-        color: white;
-        border: 1px solid #3F3F3F;
-        border-radius: 12px;
-        padding: 12px 15px;
-        font-size: 1rem;
-    }
-    
-    .stTextInput > div > div > input:focus {
-        border-color: #FF0000;
-        box-shadow: 0 0 0 1px #FF0000;
-    }
-
-    /* Buttons */
-    .stButton > button {
-        background: linear-gradient(90deg, #FF0000 0%, #D00000 100%);
-        color: white;
-        font-weight: 600;
-        border-radius: 12px;
-        border: none;
-        padding: 0.8rem 2rem;
-        box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
-        transition: all 0.3s ease;
-        width: 100%;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 0, 0, 0.4);
-    }
-
-    /* Cards */
-    .video-card {
-        background: #1E1E1E;
-        border-radius: 16px;
-        padding: 2rem;
-        border: 1px solid #333;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        margin-top: 2rem;
-    }
-
-    .info-label {
-        color: #888;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 0.2rem;
-    }
-
-    .info-value {
-        color: #FFF;
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
-
-    /* Success/Error Messages */
-    .stSuccess, .stError, .stInfo, .stWarning {
-        border-radius: 12px;
-        border: none;
-    }
-    
-    /* Select Box */
-    .stSelectbox > div > div {
-        background-color: #272727;
-        color: white;
-        border: 1px solid #3F3F3F;
-        border-radius: 12px;
-    }
-
-    /* Footer */
-    .footer {
-        text-align: center;
-        color: #555;
-        margin-top: 4rem;
-        padding-top: 2rem;
-        border-top: 1px solid #222;
-        font-size: 0.9rem;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # Database setup
 DB_PATH = "download_history.db"
@@ -561,30 +441,214 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
     except Exception as e:
         raise Exception(f"Download failed: {str(e)}")
 
+THEMES = {
+    "🌑 Dark": {
+        "bg": "#0F0F0F",
+        "card_bg": "#1E1E1E",
+        "input_bg": "#272727",
+        "text": "#FFFFFF",
+        "subtext": "#AAAAAA",
+        "label": "#888888",
+        "border": "#333333",
+        "input_border": "#3F3F3F",
+        "footer_border": "#222222",
+        "footer_text": "#555555",
+        "selectbox_bg": "#272727",
+        "selectbox_color": "white",
+    },
+    "☀️ Light": {
+        "bg": "#FFFFFF",
+        "card_bg": "#F5F5F5",
+        "input_bg": "#EFEFEF",
+        "text": "#111111",
+        "subtext": "#555555",
+        "label": "#666666",
+        "border": "#DDDDDD",
+        "input_border": "#CCCCCC",
+        "footer_border": "#DDDDDD",
+        "footer_text": "#999999",
+        "selectbox_bg": "#EFEFEF",
+        "selectbox_color": "#111111",
+    },
+    "🌫️ Grey": {
+        "bg": "#2B2B2B",
+        "card_bg": "#3A3A3A",
+        "input_bg": "#444444",
+        "text": "#EEEEEE",
+        "subtext": "#BBBBBB",
+        "label": "#AAAAAA",
+        "border": "#555555",
+        "input_border": "#666666",
+        "footer_border": "#444444",
+        "footer_text": "#888888",
+        "selectbox_bg": "#444444",
+        "selectbox_color": "#EEEEEE",
+    },
+}
+
+def apply_theme(t):
+    st.markdown(f"""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        .stApp {{
+            background-color: {t['bg']} !important;
+            font-family: 'Inter', sans-serif !important;
+        }}
+
+        /* Force all text to be visible */
+        .stApp, .stApp p, .stApp div, .stApp span, .stApp label,
+        .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp h5 {{
+            color: {t['text']} !important;
+            font-family: 'Inter', sans-serif !important;
+        }}
+
+        .main-header {{
+            text-align: center;
+            background: linear-gradient(90deg, #FF0000 0%, #FF4B4B 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }}
+
+        .subtitle {{
+            text-align: center;
+            color: {t['subtext']} !important;
+            font-size: 1.1rem;
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }}
+
+        .stTextInput > div > div > input {{
+            background-color: {t['input_bg']} !important;
+            color: {t['text']} !important;
+            border: 1px solid {t['input_border']} !important;
+            border-radius: 12px !important;
+            padding: 12px 15px !important;
+            font-size: 1rem !important;
+        }}
+
+        .stTextInput > div > div > input:focus {{
+            border-color: #FF0000 !important;
+            box-shadow: 0 0 0 1px #FF0000 !important;
+        }}
+
+        .stTextInput label, .stSelectbox label, .stCheckbox label span {{
+            color: {t['text']} !important;
+            font-weight: 600 !important;
+        }}
+
+        .stButton > button {{
+            background: linear-gradient(90deg, #FF0000 0%, #D00000 100%) !important;
+            color: white !important;
+            font-weight: 600 !important;
+            border-radius: 12px !important;
+            border: none !important;
+            padding: 0.8rem 2rem !important;
+            box-shadow: 0 4px 15px rgba(255,0,0,0.3) !important;
+            transition: all 0.3s ease !important;
+            width: 100% !important;
+        }}
+
+        .stButton > button:hover {{
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(255,0,0,0.4) !important;
+        }}
+
+        .video-card {{
+            background: {t['card_bg']} !important;
+            border-radius: 16px !important;
+            padding: 2rem !important;
+            border: 1px solid {t['border']} !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+            margin-top: 2rem !important;
+        }}
+
+        .info-label {{
+            color: {t['label']} !important;
+            font-size: 0.9rem !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            margin-bottom: 0.2rem !important;
+        }}
+
+        .info-value {{
+            color: {t['text']} !important;
+            font-size: 1.1rem !important;
+            font-weight: 600 !important;
+            margin-bottom: 1rem !important;
+        }}
+
+        .stSelectbox > div > div {{
+            background-color: {t['selectbox_bg']} !important;
+            color: {t['selectbox_color']} !important;
+            border: 1px solid {t['input_border']} !important;
+            border-radius: 12px !important;
+        }}
+
+        /* Tabs */
+        .stTabs [data-baseweb="tab-list"] {{
+            background-color: {t['card_bg']} !important;
+            border-radius: 12px !important;
+        }}
+
+        .stTabs [data-baseweb="tab"] {{
+            color: {t['subtext']} !important;
+            font-weight: 600 !important;
+        }}
+
+        .stTabs [aria-selected="true"] {{
+            color: #FF0000 !important;
+        }}
+
+        /* Expander */
+        .streamlit-expanderHeader {{
+            color: {t['text']} !important;
+            background-color: {t['card_bg']} !important;
+            border-radius: 8px !important;
+        }}
+
+        .streamlit-expanderContent {{
+            background-color: {t['card_bg']} !important;
+            border-radius: 0 0 8px 8px !important;
+        }}
+
+        .footer {{
+            text-align: center !important;
+            color: {t['footer_text']} !important;
+            margin-top: 4rem !important;
+            padding-top: 2rem !important;
+            border-top: 1px solid {t['footer_border']} !important;
+            font-size: 0.9rem !important;
+        }}
+    </style>
+    """, unsafe_allow_html=True)
+
 def main():
     # Initialize database
     init_database()
-    
+
+    # --- Theme Switcher in Sidebar ---
+    with st.sidebar:
+        st.markdown("### 🎨 Theme")
+        selected_theme = st.radio(
+            "Choose theme:",
+            options=list(THEMES.keys()),
+            index=0,
+            key="theme_selector",
+            label_visibility="collapsed"
+        )
+
+    # Apply selected theme
+    apply_theme(THEMES[selected_theme])
+
     # Header
     st.markdown('<h1 class="main-header">YouTube Downloader</h1>', unsafe_allow_html=True)
     st.markdown('<p class="subtitle">Premium video downloads with playlist support & audio extraction</p>', unsafe_allow_html=True)
-    
-    # Check for ffmpeg
-    try:
-        import subprocess
-        subprocess.run(['ffmpeg', '-version'], capture_output=True, check=True)
-    except (subprocess.CalledProcessError, FileNotFoundError):
-        st.warning("⚠️ FFmpeg not found. Some high-quality formats may not merge correctly. Please install FFmpeg.")
 
-    # Check yt-dlp version
-    try:
-        import yt_dlp.version
-        current_version = yt_dlp.version.__version__
-        if not current_version.startswith('2025'):
-             st.warning(f"⚠️ Your yt-dlp version ({current_version}) might be outdated. Please update it for best results.")
-    except:
-        pass
-    
     # Initialize session state
     if 'video_info' not in st.session_state:
         st.session_state.video_info = None
