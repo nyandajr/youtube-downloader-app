@@ -383,14 +383,18 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
         ydl_opts = {
             **bypass_opts,
             'format': 'bestaudio/best',
-            'outtmpl': os.path.join(output_path, '%(id)s.%(ext)s'),
+            'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
+            'restrictfilenames': False,
+            'windowsfilenames': True,
         }
     else:
         ydl_opts = {
             **bypass_opts,
             'format': f'{format_id}/bestvideo+bestaudio/best',
-            'outtmpl': os.path.join(output_path, '%(id)s.%(ext)s'),
+            'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
             'merge_output_format': 'mp4',
+            'restrictfilenames': False,
+            'windowsfilenames': True,
         }
     
     try:
