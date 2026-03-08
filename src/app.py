@@ -170,10 +170,8 @@ def get_video_info(url):
         'no_playlist': True,
         'fragment_retries': 10,
         'retries': 10,
-        'extractor_args': {'youtube': {'player_client': ['web', 'android'], 'player_skip': []}},
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
+        'extractor_args': {'youtube': {'player_client': ['android_vr']}},
+        'js_runtimes': {'nodejs': {'path': '/usr/bin/node'}},
     }
     
     try:
@@ -196,10 +194,8 @@ def get_video_formats(url):
         'no_warnings': True,
         'skip_download': True,
         'no_playlist': True,
-        'extractor_args': {'youtube': {'player_client': ['web', 'android'], 'player_skip': []}},
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        },
+        'extractor_args': {'youtube': {'player_client': ['android_vr']}},
+        'js_runtimes': {'nodejs': {'path': '/usr/bin/node'}},
     }
     
     try:
@@ -372,13 +368,10 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
     bypass_opts = {
         'extractor_args': {
             'youtube': {
-                'player_client': ['web', 'android'],
-                'player_skip': [],
+                'player_client': ['android_vr'],
             }
         },
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 11; Pixel 5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.91 Mobile Safari/537.36',
-        },
+        'js_runtimes': {'nodejs': {'path': '/usr/bin/node'}},
         'no_playlist': True,
         'fragment_retries': 15,
         'retries': 15,
