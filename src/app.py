@@ -743,6 +743,10 @@ def main():
         st.session_state.playlist_info = None
     if 'download_queue' not in st.session_state:
         st.session_state.download_queue = []
+    if 'downloaded_file_path' not in st.session_state:
+        st.session_state.downloaded_file_path = None
+    if 'downloaded_file_name' not in st.session_state:
+        st.session_state.downloaded_file_name = None
     
     # Create tabs
     tab1, tab2, tab3 = st.tabs(["📹 Single Video", "📋 Playlist", "📜 History"])
@@ -776,6 +780,10 @@ def main():
                 else:
                     clean_video_url = clean_url(url_input)
                     
+                    # Clear any previous download when fetching a new video
+                    st.session_state.downloaded_file_path = None
+                    st.session_state.downloaded_file_name = None
+
                     # Check if already downloaded
                     with st.spinner("Fetching video details..."):
                         try:
@@ -872,6 +880,10 @@ def main():
                 
                 # Download button
                 if st.button("⬇️ Download Now", key="dl_btn"):
+                    # Clear any previous download from session state
+                    st.session_state.pop('downloaded_file_path', None)
+                    st.session_state.pop('downloaded_file_name', None)
+
                     progress_bar = st.progress(0)
                     status_text = st.empty()
 
@@ -882,7 +894,6 @@ def main():
 
                     try:
                         with st.spinner("⏳ Downloading... please wait"):
-                            # Use temp directory so it works on cloud too
                             tmp_dir = tempfile.mkdtemp()
                             file_path = download_video(
                                 st.session_state.current_url,
@@ -895,29 +906,35 @@ def main():
                         if file_path and os.path.exists(file_path):
                             progress_bar.progress(100)
                             status_text.markdown("`100%` ✅ Done!")
-                            st.balloons()
-                            st.success(f"✅ Ready to download!")
-
-                            # Serve file as browser download
-                            file_name = os.path.basename(file_path)
-                            mime = "audio/mpeg" if file_path.endswith('.mp3') else "video/mp4"
-                            file_size = os.path.getsize(file_path)
-
-                            with open(file_path, "rb") as f:
-                                st.download_button(
-                                    label=f"💾 Save to device: {file_name}",
-                                    data=f,
-                                    file_name=file_name,
-                                    mime=mime,
-                                    use_container_width=True
-                                )
-
-                            # Show file size info
-                            st.caption(f"📦 File size: {format_file_size(file_size)} — tap the button above to save to your device")
+                            # Store in session_state so Save button doesn't re-download
+                            st.session_state.downloaded_file_path = file_path
+                            st.session_state.downloaded_file_name = os.path.basename(file_path)
+                            st.rerun()
                         else:
                             st.error("❌ Download failed - file not found")
                     except Exception as e:
                         st.error(f"❌ Download failed: {str(e)}")
+
+                # Show Save button if file is ready in session_state
+                if st.session_state.get('downloaded_file_path') and os.path.exists(st.session_state.downloaded_file_path):
+                    file_path = st.session_state.downloaded_file_path
+                    file_name = st.session_state.downloaded_file_name
+                    file_size = os.path.getsize(file_path)
+                    mime = "audio/mpeg" if file_path.endswith('.mp3') else "video/mp4"
+
+                    st.balloons()
+                    st.success(f"✅ Ready! Tap below to save to your device")
+                    st.caption(f"📦 {file_name} — {format_file_size(file_size)}")
+
+                    with open(file_path, "rb") as f:
+                        st.download_button(
+                            label=f"💾 Save to device: {file_name}",
+                            data=f,
+                            file_name=file_name,
+                            mime=mime,
+                            use_container_width=True,
+                            key="save_btn"
+                        )
                 
                 st.markdown('</div>', unsafe_allow_html=True)
     
