@@ -388,9 +388,16 @@ def download_video(url, format_id, output_path, progress_callback=None, audio_on
             'windowsfilenames': True,
         }
     else:
+        # Use selected format ID directly. If format_id is a merged format (e.g., "137+251"),
+        # yt-dlp will download and merge correctly. If format_id is 'best', return best combined.
+        if not format_id or format_id == 'best':
+            fmt_expr = 'bestvideo+bestaudio/best'
+        else:
+            fmt_expr = format_id
+
         ydl_opts = {
             **bypass_opts,
-            'format': f'{format_id}/bestvideo+bestaudio/best',
+            'format': fmt_expr,
             'outtmpl': os.path.join(output_path, '%(title)s.%(ext)s'),
             'merge_output_format': 'mp4',
             'restrictfilenames': False,
