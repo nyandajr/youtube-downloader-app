@@ -916,7 +916,7 @@ def main():
                             # Store in session_state so Save button doesn't re-download
                             st.session_state.downloaded_file_path = file_path
                             st.session_state.downloaded_file_name = os.path.basename(file_path)
-                            st.rerun()
+                            # Do not rerun; keep current state and show Save button.
                         else:
                             st.error("❌ Download failed - file not found")
                     except Exception as e:
